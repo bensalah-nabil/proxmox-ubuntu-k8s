@@ -157,3 +157,18 @@ kubectl label nodes k8s-workernode-01 kubernetes.io/role=worker
 
 kubectl label nodes k8s-workernode-02 kubernetes.io/role=worker
 ```
+# BASTION
+# ~/.ssh/config
+```sh
+Host k8s-bastion
+    HostName 192.168.1.131
+    User ubuntu
+    Port 22
+    IdentityFile ~/proxmox-kubernetes/ssh-keys/id_rsa
+
+Host 10.0.1.*
+    User ubuntu
+    Port 22
+    IdentityFile ~/proxmox-kubernetes/ssh-keys/id_rsa
+    ProxyJump k8s-bastion
+```
