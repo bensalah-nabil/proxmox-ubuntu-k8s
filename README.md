@@ -157,7 +157,7 @@ kubectl label nodes k8s-workernode-01 kubernetes.io/role=worker
 
 kubectl label nodes k8s-workernode-02 kubernetes.io/role=worker
 ```
-# BASTION
+# OVH VM
 # ~/.ssh/config
 ```sh
 Host k8s-bastion
