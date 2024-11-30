@@ -171,3 +171,8 @@ Host 10.0.1.*
     IdentityFile ~/proxmox-kubernetes/ssh-keys/id_rsa
     ProxyJump k8s-bastion 
 ```
+
+# TEMPLATE
+```sh
+https://www.khanhph.com/install-proxmox-kubernetes/
+```
