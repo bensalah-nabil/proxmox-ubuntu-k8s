@@ -108,36 +108,52 @@ For more detailed instructions, refer to the following blog post: [Create a Kube
 # proxmox-ubuntu-k8s
 
 # KUBESPRAY 
+  ```sh
 sudo apt update
+
 sudo apt install python3
+
 sudo apt install python3-pip
 
 git clone https://github.com/kubernetes-sigs/kubespray.git
+
 cd kubespray
+
 git checkout release-2.20
 
 sudo pip3 install -r requirements.txt
 
-cp -rfp inventory/sample inventory/democluster
+ansible -i inventory/tur/inventory.ini -m ping all
 
-ansible -i inventory/democluster/hosts.yaml -m ping all
-
-ansible-playbook -i inventory/democluster/hosts.yaml cluster.yml --become
+ansible-playbook -i inventory/tur/inventory.ini cluster.yml --become
+```
 
 ## CONTROLPALNE
- #Connect K8s-control-plane node
- ssh -p '22' 'demo@10.0.0.4’
- 
- #Copy kubeconfig to user path
+#Connect K8s-control-plane node
+
+```sh
+ssh -p '22' 'demo@10.0.0.4’
+``` 
+
+#Copy kubeconfig to user path
+
+```sh
  sudo mkdir -p $HOME/.kube
+
  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+
  sudo chown $(id -u):$(id -g) $HOME/.kube/config
- 
- #Get node status
- kubectl get nodes
+``` 
+
+#Get node status
+
+```sh
+
+kubectl get nodes
 
 kubectl taint nodes k8s-control-plane node-role.kubernetes.io/master:NoSchedule
 
 kubectl label nodes k8s-workernode-01 kubernetes.io/role=worker
 
 kubectl label nodes k8s-workernode-02 kubernetes.io/role=worker
+```
