@@ -114,7 +114,11 @@ pipeline_install() {
     # echo apt-get install -y unzip libfuse2 vagrant vagrant-libvirt
     # apt --fix-broken install -y
     # dpkg --configure -a -y
-
+   
+    ### HELM ###
+    curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+    chmod 700 get_helm.sh
+    ./get_helm.sh
 
 }
 # wrapped up in a function so that we have some protection against only getting
