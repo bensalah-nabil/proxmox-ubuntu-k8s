@@ -120,6 +120,8 @@ pipeline_install() {
     chmod 700 get_helm.sh
     ./get_helm.sh
 
+    ### FLUXCD ###
+    curl -s https://fluxcd.io/install.sh | sudo bash
 }
 # wrapped up in a function so that we have some protection against only getting
 # half the file during "curl | sh"
