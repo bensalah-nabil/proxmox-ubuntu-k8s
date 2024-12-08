@@ -175,4 +175,5 @@ Host 10.0.1.*
 # TEMPLATE
 ```sh
 https://www.khanhph.com/install-proxmox-kubernetes/
+https://austinsnerdythings.com/2021/08/30/how-to-create-a-proxmox-ubuntu-cloud-init-image/
 ```
