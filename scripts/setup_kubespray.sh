@@ -30,36 +30,30 @@ wait_for_lock_release() {
   done
 }
 
-wait_for_lock_release
+#wait_for_lock_release
 
 # Verify if Docker is installed
 if ! command -v docker &> /dev/null; then
     echo "Docker not found. Installing Docker..."
-    
-    # Download Docker installation script
-    if ! curl -fsSL https://get.docker.com -o get-docker.sh; then
-        echo "Error downloading Docker installation script. Exiting." >&2
-        exit 1
-    fi
 
 # Check and add DPkg::Lock::Timeout=600 to apt-get install if not already present
-    if ! grep -q 'apt-get install.*DPkg::Lock::Timeout=600' get-docker.sh; then
-        sed -i 's/apt-get install/apt-get install -o DPkg::Lock::Timeout=600/g' get-docker.sh
+    if ! grep -q 'apt-get install.*DPkg::Lock::Timeout=600' /tmp/get-docker.sh; then
+        sed -i 's/apt-get install/apt-get install -o DPkg::Lock::Timeout=600/g' /tmp/get-docker.sh
     fi
 
     # Check and add DPkg::Lock::Timeout=600 to apt-get update if not already present
-    if ! grep -q 'apt-get update.*DPkg::Lock::Timeout=600' get-docker.sh; then
-        sed -i 's/apt-get update/apt-get update -o DPkg::Lock::Timeout=600/g' get-docker.sh
+    if ! grep -q 'apt-get update.*DPkg::Lock::Timeout=600' /tmp/get-docker.sh; then
+        sed -i 's/apt-get update/apt-get update -o DPkg::Lock::Timeout=600/g' /tmp/get-docker.sh
     fi
     
     # Install Docker
-    if ! sudo sh get-docker.sh; then
+    if ! sudo sh /tmp/get-docker.sh; then
         echo "Error installing Docker. Exiting." >&2
         exit 1
     fi
     
     # Clean up by removing the Docker installation script
-    rm -f get-docker.sh
+    rm -f /tmp/get-docker.sh
 
     # Add current user to the `docker` group
     sudo usermod -aG docker $USER

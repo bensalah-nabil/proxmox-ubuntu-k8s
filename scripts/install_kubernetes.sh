@@ -9,4 +9,4 @@ sudo docker run --rm \
 --mount type=bind,source="$kubespray_data_dir/k8s-cluster.yml",dst=/inventory/sample/group_vars/k8s_cluster/k8s-cluster.yml \
 --mount type=bind,source="$kubespray_data_dir/id_rsa",dst=/root/.ssh/id_rsa \
 $kubespray_image bash -c \
-"ansible-playbook -i /inventory/sample/inventory.ini -u ubuntu -become cluster.yml"
+"ansible-playbook -i inventory/tur/inventory.ini cluster.yml --become"
