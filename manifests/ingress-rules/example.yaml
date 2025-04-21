@@ -2,18 +2,18 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: jenkins
+  name: hello-world
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
 spec:
   ingressClassName: nginx
   rules:
-  - host: jenkins.service
+  - host: hello.service
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: jenkins
-            port: { number: 8080 }
+            name: hello-world-service
+            port: { number: 80 }
