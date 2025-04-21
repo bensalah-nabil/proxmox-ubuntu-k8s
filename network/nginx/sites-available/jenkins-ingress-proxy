@@ -1,0 +1,14 @@
+server {
+    listen 8080;
+    server_name _;
+
+    location / {
+        proxy_pass http://10.0.1.240;
+        proxy_set_header Host jenkins.service;
+        
+        # Jenkins-specific settings
+        proxy_http_version 1.1;
+        proxy_request_buffering off;
+        proxy_buffering off;
+    }
+}
