@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mercure
+  namespace: smartbuilding-ns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mercure
+  template:
+    metadata:
+      labels:
+        app: mercure
+    spec:
+      containers:
+      - name: mercure
+        image: dunglas/mercure:latest
+        command: ["/usr/bin/caddy", "run", "--config", "/etc/caddy/Caddyfile.dev"]
+        ports:
+        - containerPort: 80
+          name: http
+        - containerPort: 443
+          name: https
+        envFrom:
+        - configMapRef:
+            name: app-config
+        - secretRef:
+            name: app-secrets
+        volumeMounts:
+        - name: mercure-data
+          mountPath: /data
+        - name: mercure-config
+          mountPath: /config
+        - name: caddy-config
+          mountPath: /etc/caddy/Caddyfile.dev
+          subPath: Caddyfile.dev
+      volumes:
+      - name: mercure-data
+        emptyDir: {}
+      - name: mercure-config
+        emptyDir: {}
+      - name: caddy-config
+        configMap:
+          name: caddy-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: caddy-config
+  namespace: smartbuilding-ns
+data:
+  Caddyfile.dev: |
+    {
+      http_port 80
+      https_port 443
+    }
+    :80 {
+      respond "Mercure Server"
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mercure-service
+  namespace: smartbuilding-ns
+spec:
+  selector:
+    app: mercure
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 80
+    - name: https
+      protocol: TCP
+      port: 443
+      targetPort: 443

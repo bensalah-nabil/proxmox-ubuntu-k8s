@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: caddy
+  namespace: smartbuilding-ns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: caddy
+  template:
+    metadata:
+      labels:
+        app: caddy
+    spec:
+      containers:
+      - name: caddy
+        image: nabilbs/smartbuilding-backend-caddy:latest
+        ports:
+        - containerPort: 80
+          name: http
+        - containerPort: 443
+          name: https
+        envFrom:
+        - configMapRef:
+            name: app-config
+        - secretRef:
+            name: app-secrets
+        volumeMounts:
+        - name: php-socket
+          mountPath: /var/run/php
+        - name: caddy-data
+          mountPath: /data
+        - name: caddy-config
+          mountPath: /config
+      volumes:
+      - name: php-socket
+        emptyDir: {}
+      - name: caddy-data
+        emptyDir: {}
+      - name: caddy-config
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: caddy-service
+  namespace: smartbuilding-ns
+spec:
+  selector:
+    app: caddy
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 80
+    - name: https
+      protocol: TCP
+      port: 443
+      targetPort: 443
+    - name: http3
+      protocol: UDP
+      port: 443
+      targetPort: 443

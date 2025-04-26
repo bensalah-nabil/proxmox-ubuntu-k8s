@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: smartbuilding-ns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: nabilbs/smartbuilding-backend-php:latest
+        ports:
+        - containerPort: 9000
+        envFrom:
+        - configMapRef:
+            name: app-config
+        - secretRef:
+            name: app-secrets
+        volumeMounts:
+        - name: php-socket
+          mountPath: /var/run/php
+      volumes:
+      - name: php-socket
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: smartbuilding-ns
+spec:
+  selector:
+    app: backend
+  ports:
+    - protocol: TCP
+      port: 9000
+      targetPort: 9000
