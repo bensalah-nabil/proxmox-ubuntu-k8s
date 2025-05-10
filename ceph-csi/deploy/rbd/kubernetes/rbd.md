@@ -1,1 +1,0 @@
-../../../docs/rbd/deploy.md
