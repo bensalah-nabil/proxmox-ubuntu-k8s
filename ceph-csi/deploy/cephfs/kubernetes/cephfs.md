@@ -1,1 +1,0 @@
-../../../docs/cephfs/deploy.md
