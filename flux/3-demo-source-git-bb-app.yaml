@@ -1,0 +1,11 @@
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: 3-demo-source-git-bb-app
+  namespace: flux-system
+spec:
+  interval: 1m0s
+  ref:
+    branch: 3-demo
+  url: https://github.com/bensalah-nabil/bb-app-source
