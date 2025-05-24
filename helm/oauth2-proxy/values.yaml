@@ -1,0 +1,75 @@
+# OAuth2 Proxy Configuration
+config:
+  clientID: "a56eace2-cfc4-4d5e-8552-f3edb979ce86"
+  clientSecret: "xxx"
+  cookieSecret: "6EuZQnnaInqwMJG0pn7-xazsOJvRpSkjSIE0wJFB65M="
+  configFile: |-
+    provider = "azure"
+    azure_tenant="151e41f0-2598-4e00-a9f6-e561efd5c3af"
+    provider_display_name = "azure"
+    upstreams = [ "file:///dev/null" ]
+    cookie_domains = ["137.74.93.227:8091"]
+    email_domains= ["*"]
+    whitelist_domains = ["137.74.93.227:8091"]
+    http_address = "0.0.0.0.4180"
+    pass_authorization_header="false"
+    set_xauthrequest = "false"
+    cookie_secure = "false"
+    oidc_issuer_url = "https://login.microsoftonline.com/151e41f0-2598-4e00-a9f6-e561efd5c3af/v2.0"
+    redirect_url="http://137.74.93.227:8091/oauth2/callback"
+    skip_jwt_bearer_tokens = "false"
+# Ingress Configuration
+ingress:
+  enabled: true
+  className: "nginx"
+  hosts: 
+    - "oauth.service"  # Replace with your actual domain
+  path: "/"
+  pathType: "ImplementationSpecific"
+  annotations:
+#    nginx.ingress.kubernetes.io/auth-response-headers: "x-auth-request-user, x-auth-request-email"
+#    nginx.ingress.kubernetes.io/auth-signin: "https://oauth.service/oauth2/start?rd=https://$host$request_uri"
+#    nginx.ingress.kubernetes.io/auth-url: "https://oauth.service/oauth2/auth"
+#  tls:
+#    - hosts:
+#        - "oauth.service"
+#      secretName: "oauth-tls-secret"
+
+# Service Configuration (Fixed)
+service:
+  type: ClusterIP
+  portNumber: 80  # Changed from 'port' to 'portNumber'
+  targetPort: 4180  # OAuth2 Proxy default port
+  appProtocol: http
+
+# Resource Configuration
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "200m"
+    memory: "256Mi"
+
+# Security Context
+securityContext:
+  enabled: true
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]
+
+# Metrics Configuration
+metrics:
+  enabled: true
+  port: 44180
+
+# Deployment Configuration
+replicaCount: 2
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
