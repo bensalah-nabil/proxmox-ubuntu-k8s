@@ -1,0 +1,69 @@
+# OAuth2 Proxy Configuration
+config:
+  clientID: "XXXXXXX"  # Replace with your actual client ID
+  clientSecret: "XXXXXXXX"  # Replace with your actual client secret
+  cookieSecret: "XXXXXXXXXXXXXXXX"  # Generate with: openssl rand -hex 16 | head -c 32 | base64
+  configFile: |-
+    email_domains = ["*"]
+    upstreams = ["file:///dev/null"]
+    provider = "google"
+    cookie_secure = "true"
+    cookie_httponly = "true"
+    cookie_samesite = "lax"
+    redirect_url = "https://oauth.service/oauth2/callback"  # Must match your ingress host
+
+# Ingress Configuration
+ingress:
+  enabled: true
+  className: "nginx"
+  hosts: 
+    - "oauth.service"  # Replace with your actual domain
+  path: "/"
+  pathType: "ImplementationSpecific"
+  annotations:
+    nginx.ingress.kubernetes.io/auth-response-headers: "x-auth-request-user, x-auth-request-email"
+    nginx.ingress.kubernetes.io/auth-signin: "https://oauth.service/oauth2/start?rd=https://$host$request_uri"
+    nginx.ingress.kubernetes.io/auth-url: "https://oauth.service/oauth2/auth"
+  tls:
+    - hosts:
+        - "oauth.service"
+      secretName: "oauth-tls-secret"
+
+# Service Configuration (Fixed)
+service:
+  type: ClusterIP
+  portNumber: 80  # Changed from 'port' to 'portNumber'
+  targetPort: 4180  # OAuth2 Proxy default port
+  appProtocol: http
+
+# Resource Configuration
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+  limits:
+    cpu: "200m"
+    memory: "256Mi"
+
+# Security Context
+securityContext:
+  enabled: true
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]
+
+# Metrics Configuration
+metrics:
+  enabled: true
+  port: 44180
+
+# Deployment Configuration
+replicaCount: 2
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
