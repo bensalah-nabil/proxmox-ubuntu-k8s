@@ -16,7 +16,7 @@ config:
     set_xauthrequest = "false"
     cookie_secure = "false"
     oidc_issuer_url = "https://login.microsoftonline.com/151e41f0-2598-4e00-a9f6-e561efd5c3af/v2.0"
-    redirect_url="http://137.74.93.227:8091/oauth2/callback"
+    redirect_url="https://137.74.93.227:8091/oauth2/callback"
     skip_jwt_bearer_tokens = "false"
 # Ingress Configuration
 ingress:
