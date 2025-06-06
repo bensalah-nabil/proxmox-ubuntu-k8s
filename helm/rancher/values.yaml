@@ -1,7 +1,7 @@
 # Additional Trusted CAs.
 # Enable this flag and add your CA certs as a secret named tls-ca-additional in the namespace.
 # See README.md for details.
-additionalTrustedCAs: true
+additionalTrustedCAs: false
 
 antiAffinity: preferred
 topologyKey: kubernetes.io/hostname
@@ -14,7 +14,7 @@ topologyKey: kubernetes.io/hostname
 auditLog:
   destination: sidecar
   hostPath: /var/log/rancher/audit/
-  level: 0
+  level: 3
   maxAge: 1
   maxBackup: 1
   maxSize: 100
@@ -78,8 +78,8 @@ ingress:
 
   tls:
     # options: rancher, letsEncrypt, secret
-    source: rancher
-    secretName: tls-rancher-ingress
+    source: "rancher"
+    secretName: tls-rancher-ingress-psdhq
 
 ### service ###
 # Override to use NodePort or LoadBalancer service type - default is ClusterIP
@@ -95,7 +95,7 @@ service:
 #         Use staging until you have your config right.
 letsEncrypt:
   # email: none@example.com
-  environment: ""
+  environment: "dev"
   ingress:
     # options: traefik, nginx
     class: ""
@@ -122,7 +122,7 @@ rancherImage: rancher/rancher
 
 # Number of Rancher server replicas. Setting to negative number will dynamically between 0 and the abs(replicas) based on available nodes.
 # of available nodes in the cluster
-replicas: 3
+replicas: -1
 
 # Set priorityClassName to avoid eviction
 priorityClassName: rancher-critical
