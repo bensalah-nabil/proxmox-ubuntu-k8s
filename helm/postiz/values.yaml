@@ -95,7 +95,7 @@ env:
 
 # Sensitive environment variables (to be stored in Secrets)
 secrets:
-  DATABASE_URL: ""
+  DATABASE_URL: "postgres://postiz:postiz-password@postiz:5432/db"
   REDIS_URL: ""
   JWT_SECRET: ""
   X_API_KEY: ""
