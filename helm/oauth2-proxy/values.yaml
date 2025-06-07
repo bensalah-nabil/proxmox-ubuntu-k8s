@@ -22,8 +22,8 @@ config:
 ingress:
   enabled: true
   className: "nginx"
-  hosts: 
-    - "oauth.service"  # Replace with your actual domain
+  hosts:
+    - "oauth.service.r2b001.site"
   path: "/"
   pathType: "ImplementationSpecific"
   annotations:
