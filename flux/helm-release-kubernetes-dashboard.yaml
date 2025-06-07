@@ -1,0 +1,274 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: helm-release-kubernetes-dashboard
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: kubernetes-dashboard
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: kubernetes-dashboard
+  interval: 10s
+  targetNamespace: k8s-ui-system
+  values:
+    api:
+      annotations: {}
+      automountServiceAccountToken: true
+      containers:
+        args: []
+        env: []
+        ports:
+        - containerPort: 8000
+          name: api
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 250m
+            memory: 400Mi
+          requests:
+            cpu: 100m
+            memory: 200Mi
+        volumeMounts:
+        - mountPath: /tmp
+          name: tmp-volume
+      image:
+        repository: docker.io/kubernetesui/dashboard-api
+        tag: 1.12.0
+      labels: {}
+      nodeSelector: {}
+      role: api
+      scaling:
+        replicas: 1
+        revisionHistoryLimit: 10
+      service:
+        extraSpec: null
+        type: ClusterIP
+      serviceAnnotations: {}
+      serviceLabels: {}
+      volumes:
+      - emptyDir: {}
+        name: tmp-volume
+    app:
+      affinity: {}
+      annotations: {}
+      image:
+        pullPolicy: IfNotPresent
+        pullSecrets: []
+      ingress:
+        annotations:
+          nginx.ingress.kubernetes.io/backend-protocol: HTTP
+          nginx.ingress.kubernetes.io/ssl-passthrough: "false"
+          nginx.ingress.kubernetes.io/ssl-redirect: "false"
+        enabled: true
+        hosts:
+        - kubernetes.dashboard.service
+        ingressClassName: nginx
+        issuer:
+          name: selfsigned
+          scope: default
+        labels: {}
+        path: /
+        pathType: ImplementationSpecific
+        tls:
+          enabled: false
+          secretName: ""
+        useDefaultAnnotations: false
+        useDefaultIngressClass: false
+      labels: {}
+      mode: dashboard
+      priorityClassName: null
+      scheduling:
+        nodeSelector: {}
+      security:
+        containerSecurityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsGroup: 2001
+          runAsUser: 1001
+        csrfKey: null
+        networkPolicy:
+          enabled: false
+          ingressDenyAll: false
+          spec: {}
+        podDisruptionBudget:
+          enabled: false
+          maxUnavailable: 0
+          minAvailable: 0
+        securityContext:
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+      settings:
+        global: null
+        pinnedResources: []
+      tolerations: []
+    auth:
+      annotations: {}
+      automountServiceAccountToken: true
+      containers:
+        args: []
+        env: []
+        ports:
+        - containerPort: 8000
+          name: auth
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 250m
+            memory: 400Mi
+          requests:
+            cpu: 100m
+            memory: 200Mi
+        volumeMounts:
+        - mountPath: /tmp
+          name: tmp-volume
+      image:
+        repository: docker.io/kubernetesui/dashboard-auth
+        tag: 1.2.4
+      labels: {}
+      nodeSelector: {}
+      role: auth
+      scaling:
+        replicas: 1
+        revisionHistoryLimit: 10
+      service:
+        extraSpec: null
+        type: ClusterIP
+      serviceAnnotations: {}
+      serviceLabels: {}
+      volumes:
+      - emptyDir: {}
+        name: tmp-volume
+    cert-manager:
+      enabled: false
+      installCRDs: true
+    extras:
+      manifests: []
+      serviceMonitor:
+        annotations: {}
+        enabled: false
+        labels: {}
+        metricRelabelings: []
+        relabelings: []
+        scheme: https
+        tlsConfig:
+          insecureSkipVerify: true
+    kong:
+      dblessConfig:
+        configMap: kong-dbless-config
+      enabled: true
+      env:
+        dns_order: LAST,A,CNAME,AAAA,SRV
+        nginx_worker_processes: 1
+        plugins: "off"
+      ingressController:
+        enabled: false
+      manager:
+        enabled: false
+      proxy:
+        http:
+          enabled: true
+        type: ClusterIP
+    metrics-server:
+      args:
+      - --kubelet-preferred-address-types=InternalIP
+      - --kubelet-insecure-tls
+      enabled: false
+    metricsScraper:
+      annotations: {}
+      automountServiceAccountToken: true
+      containers:
+        args: []
+        env: []
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8000
+            scheme: HTTP
+          initialDelaySeconds: 30
+          timeoutSeconds: 30
+        ports:
+        - containerPort: 8000
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 250m
+            memory: 400Mi
+          requests:
+            cpu: 100m
+            memory: 200Mi
+        volumeMounts:
+        - mountPath: /tmp
+          name: tmp-volume
+      enabled: true
+      image:
+        repository: docker.io/kubernetesui/dashboard-metrics-scraper
+        tag: 1.2.2
+      labels: {}
+      nodeSelector: {}
+      role: metrics-scraper
+      scaling:
+        replicas: 1
+        revisionHistoryLimit: 10
+      service:
+        extraSpec: null
+        type: ClusterIP
+      serviceAnnotations: {}
+      serviceLabels: {}
+      volumes:
+      - emptyDir: {}
+        name: tmp-volume
+    nginx:
+      controller:
+        electionID: ingress-controller-leader
+        ingressClassResource:
+          controllerValue: k8s.io/internal-ingress-nginx
+          default: false
+          name: internal-nginx
+        service:
+          type: ClusterIP
+      enabled: false
+    web:
+      annotations: {}
+      automountServiceAccountToken: true
+      containers:
+        args: []
+        env: []
+        ports:
+        - containerPort: 8000
+          name: web
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 250m
+            memory: 400Mi
+          requests:
+            cpu: 100m
+            memory: 200Mi
+        volumeMounts:
+        - mountPath: /tmp
+          name: tmp-volume
+      image:
+        repository: docker.io/kubernetesui/dashboard-web
+        tag: 1.6.2
+      labels: {}
+      nodeSelector: {}
+      role: web
+      scaling:
+        replicas: 1
+        revisionHistoryLimit: 10
+      service:
+        extraSpec: null
+        type: ClusterIP
+      serviceAnnotations: {}
+      serviceLabels: {}
+      volumes:
+      - emptyDir: {}
+        name: tmp-volume
