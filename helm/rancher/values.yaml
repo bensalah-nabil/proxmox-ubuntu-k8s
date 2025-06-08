@@ -1,7 +1,83 @@
-# Set replicas to a fixed number (3 for HA)
-replicas: 3
+# Additional Trusted CAs.
+additionalTrustedCAs: false
 
-# Increase resource requests/limits
+# Improved anti-affinity settings to spread across failure domains
+antiAffinity: required
+topologyKey: topology.kubernetes.io/zone
+
+# Audit Logs with conservative settings
+auditLog:
+  destination: sidecar
+  hostPath: /var/log/rancher/audit/
+  level: 1
+  maxAge: 7
+  maxBackup: 3
+  maxSize: 50
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+  image:
+    repository: "rancher/mirrored-bci-micro"
+    tag: 15.6.24.2
+    pullPolicy: "IfNotPresent"
+
+# Required for legacy support
+addLocal: "true"
+
+# Debug mode should be off in production
+debug: true
+
+# Strict TLS validation
+agentTLSMode: ""
+
+# Fully qualified name to reach your Rancher server
+hostname: rancher.service.r2b001.site
+
+imagePullSecrets: []
+
+### ingress ###
+ingress:
+  enabled: true
+  includeDefaultExtraAnnotations: true
+  ingressClassName: "nginx"
+  pathType: ImplementationSpecific
+  path: "/"
+  servicePort: 80
+
+  tls:
+    source: "rancher"
+    secretName: tls-rancher-ingress-psdhq
+
+### service ###
+service:
+  type: ClusterIP
+  annotations: {}
+  disableHTTP: false
+
+letsEncrypt:
+  environment: ""
+  ingress:
+    class: ""
+privateCA: false
+
+# Network configuration
+noProxy: 127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,.svc,.cluster.local
+
+# Image settings
+rancherImage: rancher/rancher
+
+replicas: 1
+
+# Critical priority
+priorityClassName: rancher-critical
+
+# Resource requirements for stability
 resources:
   requests:
     cpu: "1000m"
@@ -10,43 +86,61 @@ resources:
     cpu: "2000m"
     memory: "4Gi"
 
-# Configure pod anti-affinity more strictly
-antiAffinity: required  # Changed from preferred to required
-topologyKey: kubernetes.io/hostname
+tls: ingress
 
-# Adjust probes for better stability
-startupProbe:
-  timeoutSeconds: 10
-  periodSeconds: 10
-  failureThreshold: 30  # Give up to 5 minutes to start
+systemDefaultRegistry: ""
 
-livenessProbe:
-  initialDelaySeconds: 60  # Wait 1 minute before starting checks
-  timeoutSeconds: 10
-  periodSeconds: 30
-  failureThreshold: 3
+# Use bundled charts for consistency
+useBundledSystemChart: true
 
-readinessProbe:
-  initialDelaySeconds: 30
-  timeoutSeconds: 10
-  periodSeconds: 30
-  failureThreshold: 3
-
-# Enable additional trusted CAs if using private certificates
-additionalTrustedCAs: true  # Ensure you've created the tls-ca-additional secret
-
-# Configure persistence more robustly
+# Custom logos persistence
 customLogos:
   enabled: true
+  volumeSubpaths:
+    emberUi: "ember"
+    vueUi: "vue"
   volumeKind: persistentVolumeClaim
   storageClass: "longhorn"
-  accessMode: ReadWriteMany  # Changed to ReadWriteMany for multi-replica access
-  size: 5Gi  # Increased from 2Gi
+  accessMode: ReadWriteOnce
+  size: 2Gi
 
-# Disable HTTP service to force HTTPS
-service:
-  type: ClusterIP
-  disableHTTP: true  # Force HTTPS only
+# Post-delete hook
+postDelete:
+  enabled: true
+  image:
+    repository: rancher/shell
+    tag: v0.4.1
+  namespaceList:
+    - cattle-fleet-system
+    - cattle-system
+    - rancher-operator-system
+  timeout: 300
+  ignoreTimeoutError: false
 
-ingress:
-  servicePort: 443  # Must match service.disableHTTP=true
+# Bootstrap password
+bootstrapPassword: "admin"
+
+# More aggressive health checks
+startupProbe:
+  initialDelaySeconds: 30
+  timeoutSeconds: 5
+  periodSeconds: 10
+  failureThreshold: 24  # 4 minutes total
+
+livenessProbe:
+  initialDelaySeconds: 60
+  timeoutSeconds: 5
+  periodSeconds: 30
+  failureThreshold: 5  # 2.5 minutes total
+
+readinessProbe:
+  initialDelaySeconds: 5
+  timeoutSeconds: 5
+  periodSeconds: 10
+  failureThreshold: 6  # 1 minute total
+
+# Webhook and fleet configuration
+webhook: ""
+fleet: ""
+
+extraObjects: []
