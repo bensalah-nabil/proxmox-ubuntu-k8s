@@ -102,7 +102,7 @@ customLogos:
   volumeKind: persistentVolumeClaim
   storageClass: "longhorn"
   accessMode: ReadWriteOnce
-  size: 2Gi
+  size: 20Gi
 
 # Post-delete hook
 postDelete:

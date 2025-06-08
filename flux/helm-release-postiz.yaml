@@ -1,0 +1,103 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: postiz
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: postiz-app
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: bitnami-postiz
+  interval: 10s
+  targetNamespace: postiz-system
+  values:
+    affinity: {}
+    autoscaling:
+      enabled: false
+      maxReplicas: 100
+      minReplicas: 1
+      targetCPUUtilizationPercentage: 80
+    env:
+      BACKEND_INTERNAL_URL: http://backend:3000
+      FRONTEND_URL: http://localhost:4200
+      IS_GENERAL: "true"
+      NEXT_PUBLIC_BACKEND_URL: http://localhost:3000
+      NEXT_PUBLIC_UPLOAD_STATIC_DIRECTORY: ""
+      NX_ADD_PLUGINS: "false"
+      UPLOAD_DIRECTORY: ""
+    extraContainers: []
+    extraVolumeMounts: []
+    extraVolumes: []
+    fullnameOverride: ""
+    image:
+      pullPolicy: IfNotPresent
+      repository: ghcr.io/gitroomhq/postiz-app
+      tag: latest
+    imagePullSecrets: []
+    ingress:
+      annotations: {}
+      className: nginx
+      enabled: true
+      extraRules: []
+      hosts:
+      - host: postiz.app
+        paths:
+        - path: /
+          pathType: Prefix
+          port: 80
+      tls: []
+    nameOverride: ""
+    nodeSelector: {}
+    podAnnotations: {}
+    podSecurityContext: {}
+    postgresql:
+      auth:
+        database: postiz
+        password: postiz-password
+        username: postiz
+      enabled: true
+      service:
+        ports:
+          postgresql: 5432
+    redis:
+      auth:
+        password: postiz-redis-password
+      enabled: true
+      master:
+        service:
+          ports:
+            redis: 6379
+    replicaCount: 1
+    resources: {}
+    secrets:
+      CLOUDFLARE_ACCESS_KEY: ""
+      CLOUDFLARE_ACCOUNT_ID: ""
+      CLOUDFLARE_BUCKET_URL: ""
+      CLOUDFLARE_BUCKETNAME: ""
+      CLOUDFLARE_SECRET_ACCESS_KEY: ""
+      DATABASE_URL: postgres://postiz:postiz-password@postiz:5432/db
+      GITHUB_CLIENT_ID: ""
+      GITHUB_CLIENT_SECRET: ""
+      JWT_SECRET: ""
+      LINKEDIN_CLIENT_ID: ""
+      LINKEDIN_CLIENT_SECRET: ""
+      REDDIT_CLIENT_ID: ""
+      REDDIT_CLIENT_SECRET: ""
+      REDIS_URL: ""
+      RESEND_API_KEY: ""
+      X_API_KEY: ""
+      X_API_SECRET: ""
+    securityContext: {}
+    service:
+      additionalPorts: []
+      port: 80
+      type: ClusterIP
+    serviceAccount:
+      annotations: {}
+      create: true
+      name: ""
+    tolerations: []
