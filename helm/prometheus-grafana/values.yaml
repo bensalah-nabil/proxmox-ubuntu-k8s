@@ -1245,7 +1245,7 @@ grafana:
   defaultDashboardsInterval: 1m
 
   adminUser: admin
-  adminPassword: prom-operator
+  #adminPassword: prom-operator
 
   rbac:
     ## If true, Grafana PSPs will be created
@@ -1276,7 +1276,7 @@ grafana:
     ## Must be provided if Ingress is enable.
     ##
     hosts:
-      - grafana.service
+      - grafana.service.r2b001.site
 
     ## Path for grafana ingress
     path: /
