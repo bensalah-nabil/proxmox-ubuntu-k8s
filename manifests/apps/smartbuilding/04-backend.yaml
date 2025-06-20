@@ -3,16 +3,10 @@ kind: Deployment
 metadata:
   name: backend
   namespace: smartbuilding-ns
-  labels:
-    app: backend
-    component: backend
 spec:
   replicas: 2
   strategy:
     type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0
   selector:
     matchLabels:
       app: backend
@@ -20,27 +14,37 @@ spec:
     metadata:
       labels:
         app: backend
-        component: backend
-      annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/port: "9000"
     spec:
       containers:
       - name: backend
         image: nabilbs/smartbuilding-backend-php:latest
         ports:
         - containerPort: 9000
-          name: http
         env:
-        # Explicit database configuration
+        # Required Symfony environment variables
+        - name: APP_ENV
+          value: "prod"
+        - name: APP_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: APP_SECRET
+        
+        # JWT Configuration
+        - name: JWT_PASSPHRASE
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: JWT_PASSPHRASE
+        
+        # Database Configuration
         - name: DATABASE_URL
-          value: "mysql://$(DB_USER):$(DB_PASSWORD)@database.smartbuilding-ns.svc.cluster.local:3306/$(DB_NAME)?charset=utf8mb4"
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: DATABASE_URL
         - name: DB_HOST
-          value: "database.smartbuilding-ns.svc.cluster.local"
-        - name: DB_PORT
-          value: "3306"
-        - name: DB_NAME
-          value: "smartbuilding"
+          value: "database"
         - name: DB_USER
           valueFrom:
             secretKeyRef:
@@ -51,63 +55,55 @@ spec:
             secretKeyRef:
               name: db-secrets
               key: MYSQL_PASS
-        # Health check endpoint (ensure your app has this route)
-        - name: HEALTH_CHECK_PATH
-          value: "/health"
-        # Other environment variables
+        
+        # Mercure configuration
+        - name: MERCURE_JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: MERCURE_JWT_SECRET
+        - name: MERCURE_PUBLISHER_JWT_KEY
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: MERCURE_PUBLISHER_JWT_KEY
+        - name: MERCURE_SUBSCRIBER_JWT_KEY
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: MERCURE_SUBSCRIBER_JWT_KEY
+        
         envFrom:
         - configMapRef:
             name: app-config
-        - secretRef:
-            name: app-secrets
+        
         volumeMounts:
         - name: php-socket
           mountPath: /var/run/php
-        resources:
-          requests:
-            cpu: "100m"
-            memory: "256Mi"
-          limits:
-            cpu: "500m"
-            memory: "512Mi"
+        
+        # Health checks with longer initial delays for Symfony
         livenessProbe:
           httpGet:
             path: /health
             port: 9000
-          initialDelaySeconds: 30
+          initialDelaySeconds: 120
           periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
         readinessProbe:
           httpGet:
             path: /health
             port: 9000
-          initialDelaySeconds: 5
+          initialDelaySeconds: 60
           periodSeconds: 5
-          timeoutSeconds: 3
         startupProbe:
           httpGet:
             path: /health
             port: 9000
           failureThreshold: 30
           periodSeconds: 10
+      
       volumes:
       - name: php-socket
         emptyDir: {}
-      # Add any other volumes needed
-      # Optional: Add pod anti-affinity for better distribution
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            podAffinityTerm:
-              labelSelector:
-                matchExpressions:
-                - key: app
-                  operator: In
-                  values:
-                  - backend
-              topologyKey: kubernetes.io/hostname
 
 ---
 apiVersion: v1
@@ -115,17 +111,10 @@ kind: Service
 metadata:
   name: backend-service
   namespace: smartbuilding-ns
-  labels:
-    app: backend
-    component: backend
 spec:
   selector:
     app: backend
   ports:
-    - name: http
-      protocol: TCP
+    - protocol: TCP
       port: 9000
       targetPort: 9000
-  # Uncomment if you need external access
-  # type: LoadBalancer
-  # externalTrafficPolicy: Local
