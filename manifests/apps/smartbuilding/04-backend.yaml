@@ -7,7 +7,7 @@ metadata:
     app: backend
     component: backend
 spec:
-  replicas: 2  # Increased for better availability
+  replicas: 2
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -32,23 +32,29 @@ spec:
         - containerPort: 9000
           name: http
         env:
-        - name: DATABASE_HOST
+        # Explicit database configuration
+        - name: DATABASE_URL
+          value: "mysql://$(DB_USER):$(DB_PASSWORD)@database.smartbuilding-ns.svc.cluster.local:3306/$(DB_NAME)?charset=utf8mb4"
+        - name: DB_HOST
           value: "database.smartbuilding-ns.svc.cluster.local"
-        - name: DATABASE_PORT
+        - name: DB_PORT
           value: "3306"
-        - name: DATABASE_NAME
+        - name: DB_NAME
           value: "smartbuilding"
-        - name: DATABASE_USER
+        - name: DB_USER
           valueFrom:
             secretKeyRef:
               name: db-secrets
               key: MYSQL_USER
-        - name: DATABASE_PASSWORD
+        - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
               name: db-secrets
               key: MYSQL_PASS
-        # Add other environment variables from configMap and secrets
+        # Health check endpoint (ensure your app has this route)
+        - name: HEALTH_CHECK_PATH
+          value: "/health"
+        # Other environment variables
         envFrom:
         - configMapRef:
             name: app-config
@@ -71,6 +77,7 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 10
           timeoutSeconds: 5
+          failureThreshold: 3
         readinessProbe:
           httpGet:
             path: /health
@@ -88,6 +95,19 @@ spec:
       - name: php-socket
         emptyDir: {}
       # Add any other volumes needed
+      # Optional: Add pod anti-affinity for better distribution
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - backend
+              topologyKey: kubernetes.io/hostname
 
 ---
 apiVersion: v1
@@ -106,6 +126,6 @@ spec:
       protocol: TCP
       port: 9000
       targetPort: 9000
-  # Uncomment if you need to expose this outside the cluster
+  # Uncomment if you need external access
   # type: LoadBalancer
   # externalTrafficPolicy: Local
