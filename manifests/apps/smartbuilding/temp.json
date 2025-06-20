@@ -1,0 +1,63 @@
+{
+  "apiVersion": "v1",
+  "kind": "Namespace",
+  "metadata": {
+    "annotations": {
+      "cattle.io/status": "{\"Conditions\":[{\"Type\":\"ResourceQuotaInit\",\"Status\":\"True\",\"Message\":\"\",\"LastUpdateTime\":\"2025-06-20T18:42:35Z\"},{\"Type\":\"InitialRolesPopulated\",\"Status\":\"True\",\"Message\":\"\",\"LastUpdateTime\":\"2025-06-20T18:42:35Z\"}]}",
+      "lifecycle.cattle.io/create.namespace-auth": "true"
+    },
+    "creationTimestamp": "2025-06-20T18:42:34Z",
+    "deletionTimestamp": "2025-06-20T19:21:50Z",
+    "labels": {
+      "kubernetes.io/metadata.name": "smartbuilding-ns",
+      "kustomize.toolkit.fluxcd.io/name": "smartbuilding",
+      "kustomize.toolkit.fluxcd.io/namespace": "flux-system"
+    },
+    "name": "smartbuilding-ns",
+    "resourceVersion": "20474985",
+    "uid": "6dbfe344-e795-4593-913f-d135b00419b2"
+  },
+  "spec": {
+    "finalizers": []
+  },
+  "status": {
+    "conditions": [
+      {
+        "lastTransitionTime": "2025-06-20T19:21:55Z",
+        "message": "Discovery failed for some groups, 1 failing: unable to retrieve the complete list of server APIs: ext.cattle.io/v1: stale GroupVersion discovery: ext.cattle.io/v1",
+        "reason": "DiscoveryFailed",
+        "status": "True",
+        "type": "NamespaceDeletionDiscoveryFailure"
+      },
+      {
+        "lastTransitionTime": "2025-06-20T19:21:57Z",
+        "message": "All legacy kube types successfully parsed",
+        "reason": "ParsedGroupVersions",
+        "status": "False",
+        "type": "NamespaceDeletionGroupVersionParsingFailure"
+      },
+      {
+        "lastTransitionTime": "2025-06-20T19:21:57Z",
+        "message": "All content successfully deleted, may be waiting on finalization",
+        "reason": "ContentDeleted",
+        "status": "False",
+        "type": "NamespaceDeletionContentFailure"
+      },
+      {
+        "lastTransitionTime": "2025-06-20T19:21:57Z",
+        "message": "All content successfully removed",
+        "reason": "ContentRemoved",
+        "status": "False",
+        "type": "NamespaceContentRemaining"
+      },
+      {
+        "lastTransitionTime": "2025-06-20T19:21:57Z",
+        "message": "All content-preserving finalizers finished",
+        "reason": "ContentHasNoFinalizers",
+        "status": "False",
+        "type": "NamespaceFinalizersRemaining"
+      }
+    ],
+    "phase": "Terminating"
+  }
+}
