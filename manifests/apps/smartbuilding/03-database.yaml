@@ -3,20 +3,29 @@ kind: PersistentVolumeClaim
 metadata:
   name: db-pvc
   namespace: smartbuilding-ns
+  labels:
+    app: database
+    env: production
 spec:
   accessModes:
     - ReadWriteOnce
+  storageClassName: longhorn
   resources:
     requests:
-      storage: 1Gi
+      storage: 10Gi  # Increased from 1Gi to 10Gi for better database performance
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: database
   namespace: smartbuilding-ns
+  labels:
+    app: database
+    component: database
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: database
@@ -24,18 +33,62 @@ spec:
     metadata:
       labels:
         app: database
+        component: database
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9104"  # For MariaDB metrics exporter
     spec:
+      securityContext:
+        fsGroup: 999  # MariaDB runs as user 999
       containers:
       - name: database
-        image: mariadb:latest
+        image: mariadb:10.11  # Using specific version instead of latest
         ports:
         - containerPort: 3306
-        envFrom:
-        - secretRef:
-            name: db-secrets
+        env:
+        - name: MARIADB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: MYSQL_ROOT_PASS
+        - name: MARIADB_USER
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: MYSQL_USER
+        - name: MARIADB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secrets
+              key: MYSQL_PASS
+        - name: MARIADB_DATABASE
+          value: "smartbuilding"
         volumeMounts:
         - name: db-data
           mountPath: /var/lib/mysql
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+          limits:
+            cpu: "2"
+            memory: "2Gi"
+        livenessProbe:
+          exec:
+            command:
+            - mysqladmin
+            - ping
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        readinessProbe:
+          exec:
+            command:
+            - mysqladmin
+            - ping
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
       volumes:
       - name: db-data
         persistentVolumeClaim:
@@ -44,12 +97,16 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: database-service
+  name: database
   namespace: smartbuilding-ns
+  labels:
+    app: database
+    component: database
 spec:
   selector:
     app: database
   ports:
-    - protocol: TCP
+    - name: mysql
+      protocol: TCP
       port: 3306
       targetPort: 3306
