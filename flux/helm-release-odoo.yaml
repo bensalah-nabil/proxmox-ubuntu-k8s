@@ -53,7 +53,10 @@ spec:
       seLinuxOptions: {}
       seccompProfile:
         type: RuntimeDefault
+    customLivenessProbe: {}
     customPostInitScripts: {}
+    customReadinessProbe: {}
+    customStartupProbe: {}
     diagnosticMode:
       args:
       - infinity
@@ -75,17 +78,7 @@ spec:
       user: bn_odoo
     extraContainerPorts: []
     extraDeploy: []
-    extraEnvVars:
-    - name: ODOO_DB_MAXCONN
-      value: "32"
-    - name: ODOO_DB_TEMPLATE
-      value: template0
-    - name: PG_CONNECT_TIMEOUT
-      value: "30"
-    - name: ODOO_LIST_DB
-      value: "true"
-    - name: ODOO_LOG_LEVEL
-      value: info
+    extraEnvVars: []
     extraEnvVarsCM: ""
     extraEnvVarsSecret: ""
     extraVolumeMounts: []
@@ -103,7 +96,7 @@ spec:
       storageClass: ""
     hostAliases: []
     image:
-      debug: false
+      debug: true
       digest: ""
       pullPolicy: IfNotPresent
       pullSecrets: []
@@ -113,8 +106,6 @@ spec:
     ingress:
       annotations:
         nginx.ingress.kubernetes.io/proxy-body-size: 50m
-        nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
-        nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
       apiVersion: ""
       enabled: true
       extraHosts: []
@@ -142,21 +133,15 @@ spec:
     lifecycleHooks: {}
     livenessProbe:
       enabled: true
-      failureThreshold: 3
-      initialDelaySeconds: 900
+      failureThreshold: 6
+      initialDelaySeconds: 600
       periodSeconds: 30
       successThreshold: 1
       timeoutSeconds: 5
     loadDemoData: false
     nameOverride: ""
     networkPolicy:
-      allowExternal: true
-      allowExternalEgress: true
-      enabled: true
-      extraEgress: []
-      extraIngress: []
-      ingressNSMatchLabels: {}
-      ingressNSPodMatchLabels: {}
+      enabled: false
     nodeAffinityPreset:
       key: ""
       type: ""
@@ -203,38 +188,13 @@ spec:
         username: bn_odoo
       enabled: true
       primary:
-        extendedConfiguration: |-
-          max_connections = 100
-          shared_buffers = 1GB
-          effective_cache_size = 3GB
-          maintenance_work_mem = 256MB
-          checkpoint_timeout = 15min
-          max_wal_size = 2GB
-          checkpoint_completion_target = 0.9
-          wal_buffers = 16MB
-          default_statistics_target = 100
-          random_page_cost = 1.1
-          effective_io_concurrency = 200
-          work_mem = 4MB
-          min_wal_size = 1GB
-          idle_in_transaction_session_timeout = 30000
         persistence:
-          size: 20Gi
+          size: 5Gi
           storageClass: longhorn
-        podAnnotations:
-          prometheus.io/port: "9187"
-          prometheus.io/scrape: "true"
-        resources:
-          limits:
-            cpu: 3000m
-            memory: 4Gi
-          requests:
-            cpu: 2000m
-            memory: 2Gi
     priorityClassName: ""
     readinessProbe:
       enabled: true
-      failureThreshold: 6
+      failureThreshold: 12
       initialDelaySeconds: 30
       path: /web/health
       periodSeconds: 10
@@ -248,6 +208,7 @@ spec:
       requests:
         cpu: 2000m
         memory: 2Gi
+    resourcesPreset: large
     schedulerName: ""
     service:
       annotations: {}
