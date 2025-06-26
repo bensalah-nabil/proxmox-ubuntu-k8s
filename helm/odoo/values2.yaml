@@ -1,0 +1,150 @@
+# Production-Grade Odoo Helm Values
+# Includes PostgreSQL, proper secrets management, and production tuning
+
+global:
+  imagePullSecrets: []
+  storageClass: "longhorn"
+
+image:
+  registry: docker.io
+  repository: bitnami/odoo
+  tag: 18.0.20250405-debian-12-r2
+  pullPolicy: IfNotPresent
+  debug: false
+
+## Odoo Configuration
+odooEmail: admin@yourcompany.com
+existingSecret: "odoo-secrets"
+odooSkipInstall: false
+loadDemoData: false
+customPostInitScripts: {}
+
+## Security
+allowEmptyPassword: false
+usePasswordFiles: true
+
+## Resources
+resources:
+  requests:
+    cpu: "2000m"
+    memory: "4Gi"
+  limits:
+    cpu: "4000m"
+    memory: "8Gi"
+
+## Autoscaling
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 4
+  targetCPU: 60
+  targetMemory: 60
+
+## Persistence
+persistence:
+  enabled: true
+  storageClass: "longhorn"
+  accessModes:
+    - ReadWriteOnce
+  size: 20Gi
+  annotations:
+    backup.velero.io/backup-volumes: "odoo-data"
+
+## PostgreSQL Configuration (embedded)
+postgresql:
+  enabled: true
+  architecture: replication
+  auth:
+    username: "bn_odoo"
+    password: "" # Uses secret
+    database: "bitnami_odoo"
+    existingSecret: "odoo-secrets"
+    existingSecretPasswordKey: "postgresql-password"
+    existingSecretPostgresPasswordKey: "postgresql-password"
+  primary:
+    persistence:
+      storageClass: "longhorn"
+      size: "20Gi"
+    initdb:
+      scripts:
+        00-init.sql: |
+          CREATE EXTENSION IF NOT EXISTS pg_trgm;
+          CREATE EXTENSION IF NOT EXISTS unaccent;
+    resources:
+      requests:
+        cpu: "1000m"
+        memory: "2Gi"
+      limits:
+        cpu: "2000m"
+        memory: "4Gi"
+  secondary:
+    replicaCount: 1
+    persistence:
+      storageClass: "longhorn"
+      size: "20Gi"
+
+## Backup Configuration
+postgresql:
+  primary:
+    backup:
+      enabled: true
+      cronjob:
+        schedule: "0 3 * * *" # Daily at 3AM
+      retentionTime: "720h" # 30 days
+      storageClass: "longhorn"
+      resources:
+        requests:
+          cpu: "500m"
+          memory: "1Gi"
+
+## Networking
+service:
+  type: LoadBalancer
+  ports:
+    http: 80
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-internal: "true"
+
+ingress:
+  enabled: true
+  className: "nginx"
+  hosts:
+    - host: "odoo.yourcompany.com"
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: "odoo-tls"
+      hosts:
+        - "odoo.yourcompany.com"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+
+## Monitoring
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8069"
+
+## High Availability
+podAntiAffinityPreset: "hard"
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: "kubernetes.io/hostname"
+    whenUnsatisfiable: "ScheduleAnyway"
+
+## Security Context
+podSecurityContext:
+  enabled: true
+  fsGroup: 1001
+containerSecurityContext:
+  enabled: true
+  runAsUser: 1001
+  runAsNonRoot: true
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]

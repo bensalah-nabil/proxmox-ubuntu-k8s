@@ -1,0 +1,90 @@
+# Production Odoo with Single Replica and No Autoscaling
+global:
+  storageClass: "longhorn"
+
+image:
+  registry: docker.io
+  repository: bitnami/odoo
+  tag: 18.0.20250405-debian-12-r2
+  pullPolicy: IfNotPresent
+
+## Odoo Configuration
+odooEmail: admin@yourcompany.com
+existingSecret: "odoo-secrets"
+odooSkipInstall: false
+loadDemoData: false
+
+## Deployment Settings
+replicaCount: 1  # Single replica
+autoscaling:
+  enabled: false  # Disabled
+
+## Resources (adjusted for single instance)
+resources:
+  requests:
+    cpu: "2000m"
+    memory: "4Gi"
+  limits:
+    cpu: "4000m"
+    memory: "8Gi"
+
+## Persistence
+persistence:
+  enabled: true
+  storageClass: "longhorn"
+  accessModes:
+    - ReadWriteOnce
+  size: 20Gi
+
+## PostgreSQL Configuration (embedded)
+postgresql:
+  enabled: true
+  architecture: standalone  # Single PostgreSQL instance
+  auth:
+    username: "bn_odoo"
+    password: "" # Uses secret
+    database: "bitnami_odoo"
+    existingSecret: "odoo-secrets"
+    existingSecretPasswordKey: "postgresql-password"
+  primary:
+    persistence:
+      storageClass: "longhorn"
+      size: "10Gi"
+    resources:
+      requests:
+        cpu: "1000m"
+        memory: "2Gi"
+
+## Networking
+service:
+  type: LoadBalancer
+  ports:
+    http: 80
+
+ingress:
+  enabled: true
+  className: "nginx"
+  hosts:
+    - host: "odoo.yourcompany.com"
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: "odoo-tls"
+      hosts:
+        - "odoo.yourcompany.com"
+
+## Security
+podSecurityContext:
+  enabled: true
+  fsGroup: 1001
+containerSecurityContext:
+  enabled: true
+  runAsUser: 1001
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+
+## Monitoring
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8069"
