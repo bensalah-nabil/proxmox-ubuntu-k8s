@@ -194,7 +194,7 @@ spec:
       timeoutSeconds: 5
     replicaCount: 1
     resources: {}
-    resourcesPreset: large
+    resourcesPreset: 2xlarge
     schedulerName: ""
     service:
       annotations: {}
