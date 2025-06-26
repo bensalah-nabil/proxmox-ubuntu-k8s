@@ -1,0 +1,249 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: odoo
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: odoo
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: bitnami-odoo
+      version: 28.2.4
+  interval: 10s
+  targetNamespace: odoo-system
+  values:
+    affinity: {}
+    allowEmptyPassword: false
+    args: []
+    automountServiceAccountToken: false
+    autoscaling:
+      enabled: false
+      maxReplicas: 11
+      minReplicas: 1
+      targetCPU: 50
+      targetMemory: 50
+    clusterDomain: cluster.local
+    command: []
+    commonAnnotations: {}
+    commonLabels: {}
+    containerPorts:
+      http: 8069
+    containerSecurityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        add:
+        - CHOWN
+        - FOWNER
+        - SYS_CHROOT
+        - SETGID
+        - SETUID
+        - DAC_OVERRIDE
+        drop:
+        - ALL
+      enabled: true
+      privileged: false
+      readOnlyRootFilesystem: false
+      runAsGroup: 0
+      runAsNonRoot: false
+      runAsUser: 0
+      seLinuxOptions: {}
+      seccompProfile:
+        type: RuntimeDefault
+    customLivenessProbe: {}
+    customPostInitScripts: {}
+    customReadinessProbe: {}
+    customStartupProbe: {}
+    diagnosticMode:
+      args:
+      - infinity
+      command:
+      - sleep
+      enabled: false
+    existingSecret: ""
+    externalDatabase:
+      create: true
+      database: bitnami_odoo
+      existingSecret: ""
+      existingSecretPasswordKey: ""
+      existingSecretPostgresPasswordKey: ""
+      host: ""
+      password: ""
+      port: 5432
+      postgresqlPostgresPassword: ""
+      postgresqlPostgresUser: postgres
+      user: bn_odoo
+    extraContainerPorts: []
+    extraDeploy: []
+    extraEnvVars: []
+    extraEnvVarsCM: ""
+    extraEnvVarsSecret: odoo-secrets
+    extraVolumeMounts: []
+    extraVolumes: []
+    fullnameOverride: ""
+    global:
+      compatibility:
+        openshift:
+          adaptSecurityContext: disabled
+      defaultStorageClass: ""
+      imagePullSecrets: []
+      imageRegistry: ""
+      security:
+        allowInsecureImages: false
+      storageClass: ""
+    hostAliases: []
+    image:
+      debug: true
+      digest: ""
+      pullPolicy: IfNotPresent
+      pullSecrets:
+      - odoo-secrets
+      registry: docker.io
+      repository: bitnami/odoo
+      tag: 18.0.20250605-debian-12-r0
+    ingress:
+      annotations: {}
+      apiVersion: ""
+      enabled: true
+      extraHosts: []
+      extraPaths: []
+      extraRules: []
+      extraTls: []
+      hostname: odoo.app.r2b001.site
+      ingressClassName: nginx
+      path: /
+      pathType: ImplementationSpecific
+      secrets: []
+      selfSigned: false
+      tls: false
+    initContainers: []
+    kubeVersion: ""
+    lifecycleHooks: {}
+    livenessProbe:
+      enabled: true
+      failureThreshold: 6
+      initialDelaySeconds: 600
+      periodSeconds: 30
+      successThreshold: 1
+      timeoutSeconds: 5
+    loadDemoData: false
+    nameOverride: ""
+    networkPolicy:
+      allowExternal: true
+      allowExternalEgress: true
+      enabled: true
+      extraEgress: []
+      extraIngress: []
+      ingressNSMatchLabels: {}
+      ingressNSPodMatchLabels: {}
+    nodeAffinityPreset:
+      key: ""
+      type: ""
+      values: []
+    nodeSelector: {}
+    odooDatabaseFilter: .*
+    odooEmail: user@example.com
+    odooPassword: admin
+    odooSkipInstall: false
+    pdb:
+      create: true
+      maxUnavailable: ""
+      minAvailable: ""
+    persistence:
+      accessMode: ReadWriteMany
+      accessModes:
+      - ReadWriteMany
+      annotations: {}
+      dataSource: {}
+      enabled: true
+      existingClaim: ""
+      resourcePolicy: ""
+      selector: {}
+      size: 20Gi
+      storageClass: longhorn
+      subPath: ""
+    podAffinityPreset: ""
+    podAnnotations: {}
+    podAntiAffinityPreset: soft
+    podLabels: {}
+    podSecurityContext:
+      enabled: true
+      fsGroup: 0
+      fsGroupChangePolicy: Always
+      supplementalGroups: []
+      sysctls: []
+    postgresql:
+      architecture: standalone
+      auth:
+        database: bitnami_odoo
+        existingSecret: odoo-secrets
+        password: ""
+        username: bn_odoo
+      enabled: true
+    priorityClassName: ""
+    readinessProbe:
+      enabled: true
+      failureThreshold: 12
+      initialDelaySeconds: 30
+      path: /web/health
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 5
+    replicaCount: 1
+    resources: {}
+    resourcesPreset: large
+    schedulerName: ""
+    service:
+      annotations: {}
+      clusterIP: ""
+      externalTrafficPolicy: Cluster
+      extraPorts: []
+      loadBalancerIP: ""
+      loadBalancerSourceRanges: []
+      nodePorts:
+        http: ""
+      ports:
+        http: 80
+      sessionAffinity: None
+      sessionAffinityConfig: {}
+      type: LoadBalancer
+    serviceAccount:
+      annotations: {}
+      automountServiceAccountToken: false
+      create: true
+      name: ""
+    sidecars: []
+    smtpExistingSecret: ""
+    smtpHost: ""
+    smtpPassword: ""
+    smtpPort: ""
+    smtpProtocol: ""
+    smtpUser: ""
+    startupProbe:
+      enabled: false
+      failureThreshold: 6
+      initialDelaySeconds: 300
+      path: /web/health
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 5
+    terminationGracePeriodSeconds: ""
+    tolerations: []
+    topologySpreadConstraints: []
+    updateStrategy:
+      rollingUpdate: null
+      type: RollingUpdate
+    usePasswordFiles: false
+    volumePermissions:
+      containerSecurityContext:
+        enabled: true
+        runAsUser: 0
+        seLinuxOptions: {}
+        seccompProfile:
+          type: RuntimeDefault
+      enabled: false
+      resources: {}
+      resourcesPreset: nano

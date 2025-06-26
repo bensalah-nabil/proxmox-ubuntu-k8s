@@ -138,7 +138,7 @@ spec:
         className: nginx
         controller: default
         hosts:
-          core: harbor.service
+          core: harbor.service.r2b001.site
         kubeVersionOverride: ""
         labels: {}
       loadBalancer:
@@ -169,7 +169,7 @@ spec:
         secret:
           secretName: ""
       type: ingress
-    externalURL: https://core.harbor.domain
+    externalURL: https://harbor.service.r2b001.site
     harborAdminPassword: Harbor12345
     imagePullPolicy: IfNotPresent
     imagePullSecrets: null
