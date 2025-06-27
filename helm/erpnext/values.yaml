@@ -397,7 +397,7 @@ securityContext:
 
 redis-cache:
   # https://github.com/bitnami/charts/tree/master/bitnami/redis
-  enabled: true
+  enabled: false
   # host: ""
   architecture: standalone
   auth:
@@ -411,7 +411,7 @@ redis-cache:
 
 redis-queue:
   # https://github.com/bitnami/charts/tree/master/bitnami/redis
-  enabled: true
+  enabled: false
   # host: ""
   architecture: standalone
   auth:

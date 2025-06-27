@@ -188,7 +188,7 @@ spec:
       auth:
         enabled: false
         sentinel: false
-      enabled: true
+      enabled: false
       master:
         containerPorts:
           redis: 6379
@@ -199,7 +199,7 @@ spec:
       auth:
         enabled: false
         sentinel: false
-      enabled: true
+      enabled: false
       master:
         containerPorts:
           redis: 6379
