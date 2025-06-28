@@ -297,7 +297,7 @@ postgresql:
       # Connection Settings
       max_connections = 300
       shared_buffers = 2GB
-      
+
       # Timeouts
       idle_in_transaction_session_timeout = 30s
       lock_timeout = 10s
