@@ -130,19 +130,17 @@ odooDatabaseFilter: .*
 ## @param loadDemoData Whether to load demo data for all modules during initialization
 ## ref: https://github.com/bitnami/containers/tree/main/bitnami/odoo#configuration
 ##
-loadDemoData: false
+loadDemoData: true
 ## @param customPostInitScripts Custom post-init.d user scripts
 ## ref: https://github.com/bitnami/containers/tree/main/bitnami/odoo
 ## NOTE: supported formats are `.sh`, `.sql` or `.php`
 ## NOTE: scripts are exclusively executed during the 1st boot of the container
-## e.g:
-## customPostInitScripts:
-##   enable-logs.sh: |
-##     #!/bin/bash
-##     sed -i s/;logfile/logfile/ /opt/bitnami/odoo/conf/odoo.conf
-##     ...
-##
-customPostInitScripts: {}
+
+customPostInitScripts:
+  enable-logs.sh: |
+    #!/bin/bash
+    sed -i s/;logfile/logfile/ /opt/bitnami/odoo/conf/odoo.conf
+
 ## SMTP mail delivery configuration
 ## ref: https://github.com/bitnami/containers/tree/main/bitnami/odoo/#smtp-configuration
 ## @param smtpHost SMTP server host
@@ -449,7 +447,7 @@ initContainers: []
 service:
   ## @param service.type Odoo service type
   ##
-  type: LoadBalancer
+  type: ClusterIP
   ## @param service.ports.http Odoo service HTTP port
   ##
   ports:
@@ -740,19 +738,61 @@ postgresql:
   fullnameOverride: odoo-system-odoo-postgresql
   auth:
     username: bn_odoo
-    password: ""
+    password: "" # Will use secret
     database: bitnami_odoo
     existingSecret: odoo-secrets
-  architecture: replication
+  architecture: replication # Changed from standalone
   primary:
     persistence:
-      size: 10Gi
+      enabled: true
+      size: 20Gi
       storageClass: "longhorn"
+      accessModes:
+        - ReadWriteOnce
+    podAnnotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "9187"
+    resources:
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+      limits:
+        cpu: 2000m
+        memory: 4Gi
   readReplicas:
-    replicaCount: 2
+    replicaCount: 2 # Minimum 2 for HA
     persistence:
-      size: 10Gi
+      enabled: true
+      size: 20Gi
       storageClass: "longhorn"
+      accessModes:
+        - ReadWriteOnce
+    resources:
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+  pgpool:
+    enabled: true # For connection pooling
+    replicaCount: 2
+    resources:
+      requests:
+        cpu: 500m
+        memory: 512Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+  postgresqlExtendedConf:
+    max_connections: 200
+    shared_buffers: 1GB
+    maintenance_work_mem: 256MB
+    work_mem: 16MB
 ## External PostgreSQL configuration
 ## All of these values are only used when postgresql.enabled is set to false
 ## @param externalDatabase.host Database host

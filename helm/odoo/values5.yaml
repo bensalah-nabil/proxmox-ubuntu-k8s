@@ -1,0 +1,344 @@
+# Copyright Broadcom, Inc. All Rights Reserved.
+# SPDX-License-Identifier: APACHE-2.0
+
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  defaultStorageClass: ""
+  storageClass: ""
+  security:
+    allowInsecureImages: false
+  compatibility:
+    openshift:
+      adaptSecurityContext: disabled
+
+## Common parameters
+kubeVersion: ""
+nameOverride: ""
+fullnameOverride: ""
+commonLabels: {}
+commonAnnotations: {}
+clusterDomain: cluster.local
+extraDeploy: []
+usePasswordFiles: false
+
+diagnosticMode:
+  enabled: false
+  command:
+    - sleep
+  args:
+    - infinity
+
+## Odoo image configuration
+image:
+  registry: docker.io
+  repository: bitnami/odoo
+  tag: 18.0.20250605-debian-12-r0
+  digest: ""
+  pullPolicy: IfNotPresent
+  pullSecrets:
+    - odoo-secrets
+  debug: true
+
+## Odoo configuration
+odooEmail: user@example.com
+odooPassword: "admin"
+odooSkipInstall: false
+odooDatabaseFilter: .*
+loadDemoData: false  # Disabled for production
+
+##customPostInitScripts:
+##  enable-logs.sh: |
+##    #!/bin/bash
+##    sed -i s/;logfile/logfile/ /opt/bitnami/odoo/conf/odoo.conf
+
+## SMTP configuration
+smtpHost: ""
+smtpPort: ""
+smtpUser: ""
+smtpPassword: ""
+smtpProtocol: ""
+existingSecret: "odoo-secrets"
+smtpExistingSecret: ""
+allowEmptyPassword: false
+command: []
+args: []
+
+## Extra environment variables
+extraEnvVars:
+  - name: ODOO_DATABASE_HOST
+    value: "odoo-system-odoo-postgresql"
+  - name: ODOO_WORKERS
+    value: "8"  # Increased worker count for high workload
+  - name: ODOO_MAX_CRON_THREADS
+    value: "4"  # Increased cron threads
+  - name: ODOO_LIMIT_MEMORY_HARD
+    value: "3221225472"  # 3GB
+  - name: ODOO_LIMIT_MEMORY_SOFT
+    value: "2684354560"  # 2.5GB
+  - name: ODOO_LIMIT_REQUEST
+    value: "8192"  # Increased request limit
+  - name: ODOO_LIMIT_TIME_CPU
+    value: "600"  # Increased CPU time limit
+  - name: ODOO_LIMIT_TIME_REAL
+    value: "1200"  # Increased real time limit
+
+extraEnvVarsCM: ""
+extraEnvVarsSecret: "odoo-secrets"
+
+## Deployment parameters
+replicaCount: 3  # Three replicas for HA
+containerPorts:
+  http: 8069
+extraContainerPorts: []
+
+## Resource configuration for high workload
+resourcesPreset: "2xlarge"
+resources:
+  requests:
+    cpu: "4"
+    memory: "4Gi"
+  limits:
+    cpu: "6"
+    memory: "6Gi"
+
+## Security context
+podSecurityContext:
+  enabled: true
+  fsGroupChangePolicy: Always
+  sysctls: []
+  supplementalGroups: []
+  fsGroup: 0
+
+containerSecurityContext:
+  enabled: true
+  seLinuxOptions: {}
+  runAsUser: 0
+  runAsGroup: 0
+  runAsNonRoot: false
+  privileged: false
+  readOnlyRootFilesystem: false
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: ["ALL"]
+    add: ["CHOWN", "FOWNER", "SYS_CHROOT", "SETGID", "SETUID", "DAC_OVERRIDE"]
+  seccompProfile:
+    type: "RuntimeDefault"
+
+## Probes with longer timeouts for high workload
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 600
+  periodSeconds: 30
+  timeoutSeconds: 10  # Increased timeout
+  failureThreshold: 6
+  successThreshold: 1
+
+readinessProbe:
+  enabled: true
+  path: /web/health
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 10  # Increased timeout
+  failureThreshold: 12
+  successThreshold: 1
+
+startupProbe:
+  enabled: true  # Enabled for better startup handling
+  path: /web/health
+  initialDelaySeconds: 300
+  periodSeconds: 10
+  timeoutSeconds: 10  # Increased timeout
+  failureThreshold: 6
+  successThreshold: 1
+
+customLivenessProbe: {}
+customReadinessProbe: {}
+customStartupProbe: {}
+lifecycleHooks: {}
+automountServiceAccountToken: false
+hostAliases: []
+podLabels: {}
+podAnnotations: {}
+
+## Affinity and anti-affinity for HA
+podAffinityPreset: ""
+podAntiAffinityPreset: hard  # Hard anti-affinity to ensure pods are on different nodes
+
+nodeAffinityPreset:
+  type: ""
+  key: ""
+  values: []
+
+affinity: {}
+nodeSelector: {}
+tolerations: []
+
+## Topology spread constraints for better distribution
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: DoNotSchedule
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: odoo
+
+priorityClassName: ""
+schedulerName: ""
+terminationGracePeriodSeconds: ""
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2
+
+## Update strategy for HA
+updateStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+
+extraVolumes: []
+extraVolumeMounts: []
+sidecars: []
+initContainers: []
+## Service configuration
+service:
+  type: ClusterIP
+  ports:
+    http: 80
+  nodePorts:
+    http: ""
+  sessionAffinity: None
+  sessionAffinityConfig: {}
+  clusterIP: ""
+  loadBalancerIP: ""
+  loadBalancerSourceRanges: []
+  externalTrafficPolicy: Cluster
+  annotations: {}
+  extraPorts: []
+
+## Ingress configuration
+ingress:
+  enabled: true
+  ingressClassName: "nginx"
+  pathType: ImplementationSpecific
+  apiVersion: ""
+  hostname: odoo.app.r2b001.site
+  path: /
+  annotations: {}
+  tls: false
+  selfSigned: false
+  extraHosts: []
+  extraPaths: []
+  extraTls: []
+  secrets: []
+  extraRules: []
+
+## Persistence configuration for HA
+persistence:
+  enabled: true
+  subPath: ""
+  resourcePolicy: "keep"
+  storageClass: "longhorn"
+  accessModes:
+    - ReadWriteMany
+  accessMode: ReadWriteMany
+  size: 20Gi
+  dataSource: {}
+  annotations: {}
+  selector: {}
+  existingClaim: ""
+
+volumePermissions:
+  enabled: false
+  resourcesPreset: "nano"
+  resources: {}
+  containerSecurityContext:
+    enabled: true
+    seLinuxOptions: {}
+    runAsUser: 0
+    seccompProfile:
+      type: "RuntimeDefault"
+
+## RBAC configuration
+serviceAccount:
+  create: true
+  name: ""
+  automountServiceAccountToken: false
+  annotations: {}
+
+## PDB configuration for HA
+pdb:
+  create: true
+  minAvailable: "50%"  # Ensure at least 50% of pods are always available
+  maxUnavailable: ""
+
+## Disabled autoscaling as requested
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 11
+  targetCPU: 50
+  targetMemory: 50
+
+## PostgreSQL configuration for HA
+postgresql:
+  enabled: true
+  fullnameOverride: odoo-system-odoo-postgresql
+  auth:
+    username: bn_odoo
+    password: ""
+    database: bitnami_odoo
+    existingSecret: odoo-secrets
+  architecture: standalone
+  primary:
+    name: primary
+    extendedConfiguration: |-
+      # Connection Settings
+      max_connections = 300
+      shared_buffers = 2GB
+      
+      # Timeouts
+      idle_in_transaction_session_timeout = 30s
+      lock_timeout = 10s
+      
+      # Memory Settings
+      work_mem = 32MB
+      maintenance_work_mem = 256MB
+      
+      # WAL and Checkpoints
+      wal_level = replica
+      max_wal_size = 2GB
+      checkpoint_timeout = 15min
+      
+      # Parallel Processing
+      max_worker_processes = 8
+      max_parallel_workers_per_gather = 4
+
+    standby:
+      enabled: false
+      primaryHost: ""
+      primaryPort: ""
+
+externalDatabase:
+  host: ""
+  port: 5432
+  user: bn_odoo
+  password: ""
+  database: bitnami_odoo
+  create: true
+  postgresqlPostgresUser: "postgres"
+  postgresqlPostgresPassword: ""
+  existingSecret: ""
+  existingSecretPasswordKey: ""
+  existingSecretPostgresPasswordKey: ""
+
+## Network policy
+networkPolicy:
+  enabled: true
+  allowExternal: true
+  allowExternalEgress: true
+  extraIngress: []
+  extraEgress: []
+  ingressNSMatchLabels: {}
+  ingressNSPodMatchLabels: {}
