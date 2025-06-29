@@ -47,11 +47,6 @@ odooSkipInstall: false
 odooDatabaseFilter: .*
 loadDemoData: false  # Disabled for production
 
-##customPostInitScripts:
-##  enable-logs.sh: |
-##    #!/bin/bash
-##    sed -i s/;logfile/logfile/ /opt/bitnami/odoo/conf/odoo.conf
-
 ## SMTP configuration
 smtpHost: ""
 smtpPort: ""
@@ -68,6 +63,12 @@ args: []
 extraEnvVars:
   - name: ODOO_DATABASE_HOST
     value: "10.0.1.4"
+  - name: ODOO_DATABASE_PORT
+    value: "5432"
+  - name: ODOO_DATABASE_USER
+    value: "bn_user"
+  - name: ODOO_DATABASE_NAME
+    value: "odoo_prod"
   - name: ODOO_WORKERS
     value: "8"  # Increased worker count for high workload
   - name: ODOO_MAX_CRON_THREADS
@@ -82,7 +83,6 @@ extraEnvVars:
     value: "600"  # Increased CPU time limit
   - name: ODOO_LIMIT_TIME_REAL
     value: "1200"  # Increased real time limit
-
 
 extraEnvVarsCM: ""
 extraEnvVarsSecret: "odoo-secrets"
@@ -202,6 +202,7 @@ extraVolumes: []
 extraVolumeMounts: []
 sidecars: []
 initContainers: []
+
 ## Service configuration
 service:
   type: ClusterIP
@@ -282,53 +283,20 @@ autoscaling:
   targetCPU: 50
   targetMemory: 50
 
-## PostgreSQL configuration for HA
+## PostgreSQL configuration (disabled since using external)
 postgresql:
   enabled: false
-  fullnameOverride: odoo-system-odoo-postgresql
-  auth:
-    username: bn_odoo
-    password: ""
-    database: bitnami_odoo
-    existingSecret: odoo-secrets
-  architecture: standalone
-  primary:
-    name: primary
-##    extendedConfiguration: |-
-##      # Connection Settings
-##      max_connections = 300
-##      shared_buffers = 2GB
-##      # Timeouts
-##      idle_in_transaction_session_timeout = 30s
-##      lock_timeout = 10s
-##      # Memory Settings
-##      work_mem = 32MB
-##      maintenance_work_mem = 256MB
-##      # WAL and Checkpoints
-##      wal_level = replica
-##      max_wal_size = 2GB
-##      checkpoint_timeout = 15min
-##      # Parallel Processing
-##      max_worker_processes = 8
-##      max_parallel_workers_per_gather = 4
 
-##    standby:
-##      enabled: false
-##      primaryHost: ""
-##      primaryPort: ""
-
+## External database configuration
 externalDatabase:
   host: "10.0.1.4"
   port: 5432
-  user: bn_user
+  user: "bn_user"
   password: "your_strong_password"
-  database: odoo_prod
-  create: true
-  postgresqlPostgresUser: "postgres"
-  postgresqlPostgresPassword: ""
-  existingSecret: odoo-secrets
-  existingSecretPasswordKey: ""
-  existingSecretPostgresPasswordKey: ""
+  database: "odoo_prod"
+  create: false  # Set to false since database already exists
+  existingSecret: "odoo-secrets"
+  existingSecretPasswordKey: "postgresql-password"
 
 ## Network policy
 networkPolicy:

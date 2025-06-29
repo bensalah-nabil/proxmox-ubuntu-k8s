@@ -1,0 +1,138 @@
+# values.yaml – Optimized for High-Availability Odoo Deployment
+# Copyright Broadcom, Inc. All Rights Reserved.
+# SPDX-License-Identifier: APACHE-2.0
+
+### Global Settings
+global:
+  imageRegistry: ""
+  imagePullSecrets: [odoo-secrets]
+  storageClass: "longhorn"  # Recommended for RWX volumes
+  security:
+    allowInsecureImages: false
+## PostgreSQL configuration (disabled since using external)
+postgresql:
+  enabled: false
+### Odoo Image Configuration
+image:
+  registry: docker.io
+  repository: bitnami/odoo
+  tag: 18.0.20250605-debian-12-r0  # Pin to stable version
+  pullPolicy: IfNotPresent
+  debug: false  # Disable debug mode for production
+
+## Odoo configuration
+odooEmail: user@example.com
+odooPassword: "admin"
+odooSkipInstall: false
+odooDatabaseFilter: .*
+loadDemoData: false  # Disabled for production
+
+### Database Configuration (External PostgreSQL)
+externalDatabase:
+  host: "10.0.1.4"
+  port: 5432
+  user: "bn_user"
+  database: "odoo_prod"
+  existingSecret: "odoo-secrets"  # Store password in Kubernetes Secret
+  create: false
+
+### Resource Allocation (Optimized for 4CPU/8GB Nodes)
+resources:
+  requests:
+    cpu: "2"
+    memory: "4Gi"
+  limits:
+    cpu: "4"
+    memory: "6Gi"
+
+### Performance-Tuned Environment Variables
+extraEnvVars:
+  # Worker Configuration
+  - name: ODOO_WORKERS
+    value: "6"  # (CPU cores * 1.5) + 1
+  - name: ODOO_MAX_CRON_THREADS
+    value: "2"
+  - name: ODOO_WORKER_RECYCLE
+    value: "500"  # Prevent memory leaks
+
+  # Timeout Settings
+  - name: ODOO_LIMIT_TIME_REAL
+    value: "300"  # 5 minutes
+  - name: ODOO_LIMIT_TIME_CPU
+    value: "240"  # 4 minutes
+  - name: ODOO_LIMIT_MEMORY_SOFT
+    value: "3221225472"  # 3GB
+  - name: ODOO_LIMIT_MEMORY_HARD
+    value: "4294967296"  # 4GB
+
+  # Database Optimization
+  - name: ODOO_DB_MAXCONN
+    value: "24"  # (workers + cron_threads) * 3
+  - name: PGOPTIONS
+    value: "-c statement_timeout=300000"  # 5min DB query timeout
+
+### High Availability Configuration
+replicaCount: 2
+podAntiAffinityPreset: hard  # Spread pods across nodes
+updateStrategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 1
+    maxSurge: 1
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+### Health Checks (Optimized for Heavy Load)
+livenessProbe:
+  initialDelaySeconds: 300  # Wait 5 mins for startup
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 3
+
+readinessProbe:
+  path: /web/health
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+### Persistence (Required for Attachments)
+persistence:
+  enabled: true
+  storageClass: "longhorn"
+  accessModes: [ReadWriteMany]
+  size: 20Gi
+  annotations:
+    longhorn.io/replica-count: "3"  # For HA storage
+
+## Ingress configuration
+ingress:
+  enabled: true
+  ingressClassName: "nginx"
+  pathType: ImplementationSpecific
+  apiVersion: ""
+  hostname: odoo.app.r2b001.site
+  path: /
+  annotations: {}
+  tls: false
+  selfSigned: false
+  extraHosts: []
+  extraPaths: []
+  extraTls: []
+  secrets: []
+  extraRules: []
+
+### SMTP Configuration (Recommended)
+smtpHost: ""
+smtpPort: ""
+smtpProtocol: ""
+existingSecret: ""  # Store SMTP credentials here
+
+### Monitoring Sidecar (Optional)
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    interval: 30s
