@@ -11,96 +11,48 @@ spec:
       reconcileStrategy: ChartVersion
       sourceRef:
         kind: HelmRepository
-        name: bitnami-odoo
+        name: bitnami
       version: 28.2.4
   interval: 10s
   targetNamespace: odoo-system
   values:
-    affinity: {}
-    allowEmptyPassword: false
-    args: []
-    automountServiceAccountToken: false
-    autoscaling:
-      enabled: false
-      maxReplicas: 11
-      minReplicas: 1
-      targetCPU: 50
-      targetMemory: 50
-    clusterDomain: cluster.local
-    command: []
-    commonAnnotations: {}
-    commonLabels: {}
-    containerPorts:
-      http: 8069
-    containerSecurityContext:
-      allowPrivilegeEscalation: false
-      capabilities:
-        add:
-        - CHOWN
-        - FOWNER
-        - SYS_CHROOT
-        - SETGID
-        - SETUID
-        - DAC_OVERRIDE
-        drop:
-        - ALL
-      enabled: true
-      privileged: false
-      readOnlyRootFilesystem: false
-      runAsGroup: 0
-      runAsNonRoot: false
-      runAsUser: 0
-      seLinuxOptions: {}
-      seccompProfile:
-        type: RuntimeDefault
-    customLivenessProbe: {}
-    customPostInitScripts: {}
-    customReadinessProbe: {}
-    customStartupProbe: {}
-    diagnosticMode:
-      args:
-      - infinity
-      command:
-      - sleep
-      enabled: false
     existingSecret: ""
     externalDatabase:
-      create: true
-      database: bitnami_odoo
-      existingSecret: ""
-      existingSecretPasswordKey: ""
-      existingSecretPostgresPasswordKey: ""
-      host: ""
-      password: ""
+      create: false
+      database: odoo_prod
+      existingSecret: odoo-secrets
+      host: 10.0.1.4
       port: 5432
-      postgresqlPostgresPassword: ""
-      postgresqlPostgresUser: postgres
-      user: bn_odoo
-    extraContainerPorts: []
-    extraDeploy: []
-    extraEnvVars: []
-    extraEnvVarsCM: ""
-    extraEnvVarsSecret: odoo-secrets
-    extraVolumeMounts: []
-    extraVolumes: []
-    fullnameOverride: ""
+      user: bn_user
+    extraEnvVars:
+    - name: ODOO_WORKERS
+      value: "6"
+    - name: ODOO_MAX_CRON_THREADS
+      value: "2"
+    - name: ODOO_WORKER_RECYCLE
+      value: "500"
+    - name: ODOO_LIMIT_TIME_REAL
+      value: "300"
+    - name: ODOO_LIMIT_TIME_CPU
+      value: "240"
+    - name: ODOO_LIMIT_MEMORY_SOFT
+      value: "3221225472"
+    - name: ODOO_LIMIT_MEMORY_HARD
+      value: "4294967296"
+    - name: ODOO_DB_MAXCONN
+      value: "24"
+    - name: PGOPTIONS
+      value: -c statement_timeout=300000
     global:
-      compatibility:
-        openshift:
-          adaptSecurityContext: disabled
-      defaultStorageClass: ""
-      imagePullSecrets: []
+      imagePullSecrets:
+      - odoo-secrets
       imageRegistry: ""
       security:
         allowInsecureImages: false
-      storageClass: ""
-    hostAliases: []
+      storageClass: longhorn
     image:
-      debug: true
-      digest: ""
+      debug: false
       pullPolicy: IfNotPresent
-      pullSecrets:
-      - odoo-secrets
       registry: docker.io
       repository: bitnami/odoo
       tag: 18.0.20250605-debian-12-r0
@@ -119,131 +71,54 @@ spec:
       secrets: []
       selfSigned: false
       tls: false
-    initContainers: []
-    kubeVersion: ""
-    lifecycleHooks: {}
     livenessProbe:
-      enabled: true
-      failureThreshold: 6
-      initialDelaySeconds: 600
+      failureThreshold: 3
+      initialDelaySeconds: 300
       periodSeconds: 30
-      successThreshold: 1
-      timeoutSeconds: 5
+      timeoutSeconds: 10
     loadDemoData: false
-    nameOverride: ""
-    networkPolicy:
-      allowExternal: true
-      allowExternalEgress: true
+    metrics:
       enabled: true
-      extraEgress: []
-      extraIngress: []
-      ingressNSMatchLabels: {}
-      ingressNSPodMatchLabels: {}
-    nodeAffinityPreset:
-      key: ""
-      type: ""
-      values: []
-    nodeSelector: {}
+      serviceMonitor:
+        enabled: true
+        interval: 30s
     odooDatabaseFilter: .*
     odooEmail: user@example.com
     odooPassword: admin
     odooSkipInstall: false
-    pdb:
-      create: true
-      maxUnavailable: ""
-      minAvailable: ""
     persistence:
-      accessMode: ReadWriteMany
       accessModes:
       - ReadWriteMany
-      annotations: {}
-      dataSource: {}
+      annotations:
+        longhorn.io/replica-count: "3"
       enabled: true
-      existingClaim: ""
-      resourcePolicy: ""
-      selector: {}
       size: 20Gi
       storageClass: longhorn
-      subPath: ""
-    podAffinityPreset: ""
-    podAnnotations: {}
-    podAntiAffinityPreset: soft
-    podLabels: {}
-    podSecurityContext:
+    podAntiAffinityPreset: hard
+    podDisruptionBudget:
       enabled: true
-      fsGroup: 0
-      fsGroupChangePolicy: Always
-      supplementalGroups: []
-      sysctls: []
+      minAvailable: 1
     postgresql:
-      architecture: standalone
-      auth:
-        database: bitnami_odoo
-        existingSecret: odoo-secrets
-        password: ""
-        username: bn_odoo
-      enabled: true
-    priorityClassName: ""
+      enabled: false
     readinessProbe:
-      enabled: true
-      failureThreshold: 12
+      failureThreshold: 3
       initialDelaySeconds: 30
       path: /web/health
       periodSeconds: 10
-      successThreshold: 1
       timeoutSeconds: 5
-    replicaCount: 1
-    resources: {}
-    resourcesPreset: 2xlarge
-    schedulerName: ""
-    service:
-      annotations: {}
-      clusterIP: ""
-      externalTrafficPolicy: Cluster
-      extraPorts: []
-      loadBalancerIP: ""
-      loadBalancerSourceRanges: []
-      nodePorts:
-        http: ""
-      ports:
-        http: 80
-      sessionAffinity: None
-      sessionAffinityConfig: {}
-      type: LoadBalancer
-    serviceAccount:
-      annotations: {}
-      automountServiceAccountToken: false
-      create: true
-      name: ""
-    sidecars: []
-    smtpExistingSecret: ""
+    replicaCount: 2
+    resources:
+      limits:
+        cpu: "4"
+        memory: 6Gi
+      requests:
+        cpu: "2"
+        memory: 4Gi
     smtpHost: ""
-    smtpPassword: ""
     smtpPort: ""
     smtpProtocol: ""
-    smtpUser: ""
-    startupProbe:
-      enabled: false
-      failureThreshold: 6
-      initialDelaySeconds: 300
-      path: /web/health
-      periodSeconds: 10
-      successThreshold: 1
-      timeoutSeconds: 5
-    terminationGracePeriodSeconds: ""
-    tolerations: []
-    topologySpreadConstraints: []
     updateStrategy:
-      rollingUpdate: null
+      rollingUpdate:
+        maxSurge: 1
+        maxUnavailable: 1
       type: RollingUpdate
-    usePasswordFiles: false
-    volumePermissions:
-      containerSecurityContext:
-        enabled: true
-        runAsUser: 0
-        seLinuxOptions: {}
-        seccompProfile:
-          type: RuntimeDefault
-      enabled: false
-      resources: {}
-      resourcesPreset: nano

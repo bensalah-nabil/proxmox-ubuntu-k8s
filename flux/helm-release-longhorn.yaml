@@ -170,13 +170,13 @@ spec:
     ingress:
       annotations: null
       enabled: false
-      host: sslip.io
-      ingressClassName: null
+      host: longhorn.service.r2b001.site
+      ingressClassName: nginx
       path: /
       pathType: ImplementationSpecific
       secrets: null
-      secureBackends: false
-      tls: false
+      secureBackends: true
+      tls: true
       tlsSecret: longhorn.local-tls
     longhornDriver:
       log:

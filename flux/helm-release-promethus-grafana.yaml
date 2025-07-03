@@ -905,6 +905,9 @@ spec:
           - job_name: 'load-balancer-metrics'
             static_configs:
             - targets: ['137.74.93.227:8405']
+          - job_name: 'prometheus'
+            static_configs:
+            - targets: ['10.0.1.4:9187']
         additionalScrapeConfigsSecret: {}
         affinity: {}
         alertingEndpoints: []

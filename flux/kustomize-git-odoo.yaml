@@ -1,0 +1,14 @@
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: kustomize-odoo
+  namespace: flux-system
+spec:
+  interval: 10s
+  path: ./manifests/apps/odoo
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: metalb-git
+  targetNamespace: odoo-system

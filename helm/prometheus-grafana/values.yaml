@@ -4332,6 +4332,9 @@ prometheus:
       - job_name: 'load-balancer-metrics'
         static_configs:
         - targets: ['137.74.93.227:8405']
+      - job_name: 'postgres'
+        static_configs:
+          - targets: ["10.0.1.4:9187"]
     #  - job_name: "node-exporter"
     #    gce_sd_configs:
     #    {{range $zone := .Values.gcp_zones}}
