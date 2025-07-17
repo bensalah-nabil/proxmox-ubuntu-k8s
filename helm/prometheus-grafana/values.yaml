@@ -4338,6 +4338,9 @@ prometheus:
       - job_name: 'load-balancer-metrics'
         static_configs:
         - targets: ['137.74.93.227:8405']
+      - job_name: 'proxmox'
+        static_configs:
+        - targets: ['137.74.93.227:9221']
       - job_name: 'postgres'
         static_configs:
           - targets: ["10.0.1.4:9187"]
