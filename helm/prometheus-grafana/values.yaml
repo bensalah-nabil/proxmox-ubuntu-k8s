@@ -1252,6 +1252,12 @@ grafana:
     ##
     pspEnabled: false
 
+  grafana.ini:
+    server:
+      domain: "{{ if (and .Values.ingress.enabled .Values.ingress.hosts) }}{{ tpl (.Values.ingress.hosts | first) . }}{{ else }}''{{ end }}"
+      # The full public facing url you use in browser, used for redirects and emails  
+      root_url: "https://grafana.service.r2b001.site"
+
   ingress:
     ## If true, Grafana Ingress will be created
     ##
