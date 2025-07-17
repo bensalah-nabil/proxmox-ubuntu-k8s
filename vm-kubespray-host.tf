@@ -55,6 +55,7 @@ module "kubespray_host" {
 
   node_count                   = var.create_kubespray_host ? 1 : 0
   pm_host                      = var.pm_host
+  pool                         = ""
   vm_ubuntu_tmpl_name          = var.vm_ubuntu_tmpl_name
   vm_name_prefix               = var.use_legacy_naming_convention ? "${var.env_name}-kubespray" : "vm-${local.cluster_name}-kubespray"
   vm_max_vcpus                 = var.vm_max_vcpus

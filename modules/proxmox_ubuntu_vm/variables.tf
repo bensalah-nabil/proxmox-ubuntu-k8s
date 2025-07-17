@@ -1,3 +1,7 @@
+variable "pool" {
+  type       = string
+}
+
 variable "pm_host" {
   type        = string
   description = "The name of Proxmox node where the VM is placed."

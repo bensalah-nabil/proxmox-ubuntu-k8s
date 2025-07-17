@@ -168,6 +168,9 @@ variable "bastion_ssh_port" {
   default     = 22
 }
 
+variable "pool" {
+  type       = string
+}
 # Kuberentes VM specifications for Kubernetes nodes
 ########################################################################
 variable "vm_k8s_control_plane" {
