@@ -4335,15 +4335,31 @@ prometheus:
     ## If scrape config contains a repetitive section, you may want to use a template.
     ## In the following example, you can see how to define `gce_sd_configs` for multiple zones
     additionalScrapeConfigs: |
+
       - job_name: 'load-balancer-metrics'
         static_configs:
         - targets: ['137.74.93.227:8405']
-      - job_name: 'proxmox'
+
+      - job_name: proxmox
         static_configs:
-        - targets: ['137.74.93.227:9221']
+          - targets: ['137.74.93.227:9221']
+        metrics_path: /pve
+        params:
+          module: [default]
+          cluster: ["1"]
+          node: ["1"]
+        relabel_configs:
+          - source_labels: [__address__]
+            target_label: __param_target
+          - source_labels: [__param_target]
+            target_label: instance
+          - target_label: __address__
+            replacement: 137.74.93.227:9221
+
       - job_name: 'postgres'
         static_configs:
-          - targets: ["10.0.1.4:9187"]
+        - targets: ["10.0.1.4:9187"]
+
     #  - job_name: "node-exporter"
     #    gce_sd_configs:
     #    {{range $zone := .Values.gcp_zones}}
