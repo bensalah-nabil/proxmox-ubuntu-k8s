@@ -18,7 +18,7 @@ image:
   repository: bitnami/odoo
   tag: 18.0.20250605-debian-12-r0  # Pin to stable version
   pullPolicy: IfNotPresent
-  debug: false  # Disable debug mode for production
+  debug: true  # Disable debug mode for production
 
 ## Odoo configuration
 odooEmail: user@example.com
