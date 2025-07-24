@@ -39,11 +39,11 @@ externalDatabase:
 ### Resource Allocation (Optimized for 4CPU/8GB Nodes)
 resources:
   requests:
+    cpu: "1"
+    memory: "2Gi"
+  limits:
     cpu: "2"
     memory: "4Gi"
-  limits:
-    cpu: "4"
-    memory: "6Gi"
 
 ### Performance-Tuned Environment Variables
 extraEnvVars:
@@ -72,7 +72,7 @@ extraEnvVars:
     value: "-c statement_timeout=300000"  # 5min DB query timeout
 
 ### High Availability Configuration
-replicaCount: 2
+replicaCount: 1
 podAntiAffinityPreset: hard  # Spread pods across nodes
 updateStrategy:
   type: RollingUpdate
